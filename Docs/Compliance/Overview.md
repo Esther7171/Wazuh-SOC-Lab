@@ -296,6 +296,19 @@ Enhance your system security by enabling the **Ctrl+Alt+Del** login prompt on Wi
 
 
 # Powershell Script to maintain Password Policy
+
+* Policy’s
+* Minimum password age (days) : `45`
+* Maximum password age (days)" `60`
+* Minimum password length: `8`
+* Length of password history maintained: `5`
+* Lockout threshold: `5`
+* Lockout duration (minutes): `10`
+* Lockout observation window (minutes): `10`
+* Turns ON the screen saver: `yes`
+* Require Password on Resume: `yes`
+* Set Idle Timeout (10 mins): `yes`
+
 ```
 net accounts /maxpwage:60
 net accounts /minpwage:45
