@@ -297,7 +297,7 @@ Enhance your system security by enabling the **Ctrl+Alt+Del** login prompt on Wi
 
 # Powershell Script to maintain Password Policy
 
-* Policy’s
+#### Policy’s
 * Minimum password age (days) : `45`
 * Maximum password age (days)" `60`
 * Minimum password length: `8`
