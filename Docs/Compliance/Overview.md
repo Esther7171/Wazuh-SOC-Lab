@@ -291,4 +291,29 @@ Enhance your system security by enabling the **Ctrl+Alt+Del** login prompt on Wi
      
 
 6. **Apply Changes & Restart**  
-   Click **OK** to save the changes, then **restart your system** for the modifications to take effect. 
+   Click **OK** to save the changes, then **restart your system** for the modifications to take effect.
+
+
+
+# Powershell Script to maintain Password Policy
+```
+net accounts /maxpwage:60
+net accounts /minpwage:45
+net accounts /minpwlen:8
+net accounts /uniquepw:5
+# ACCOUNT LOCKOUT POLICY
+net accounts /lockoutthreshold:5
+net accounts /lockoutduration:30
+net accounts /lockoutwindow:30
+# USER-LEVEL ENFORCEMENT (IMPORTANT)
+net user $USER /passwordreq:yes
+# SCREEN LOCK POLICY (10 mins)
+reg add "HKCU\Control Panel\Desktop" /v ScreenSaveActive /t REG_SZ /d 1 /f
+reg add "HKCU\Control Panel\Desktop" /v ScreenSaverIsSecure /t REG_SZ /d 1 /f
+reg add "HKCU\Control Panel\Desktop" /v ScreenSaveTimeOut /t REG_SZ /d 600 /f
+
+# POWER / DISPLAY TIMEOUT
+powercfg /change monitor-timeout-ac 10
+# To Recheck 
+net Accounts
+```
