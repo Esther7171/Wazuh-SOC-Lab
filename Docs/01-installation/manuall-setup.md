@@ -1,10 +1,13 @@
-# Installing the Wazuh Indexer Using the Assisted Installation Method
+# How to Install Wazuh Using the Assisted Installer
+
+This guide explains how to deploy the Wazuh Indexer, Wazuh Server, and Wazuh Dashboard using the official Wazuh assisted installer.
 
 > **Note**: You need root user privileges to run all the commands described below.
 
 ---
 
-## Step 1: Create a Directory for Installation Files
+## Create Installation Directory
+
 Organize all installation files in a dedicated directory:
 
 ```bash
@@ -14,7 +17,8 @@ cd wazuh-install
 
 ---
 
-## Step 2: Initial Configuration
+## Download Installation Files
+
 Set up your deployment configuration, generate SSL certificates, and create secure random passwords.
 
 ### Download the Installation Assistant and Configuration File:
@@ -57,7 +61,8 @@ nodes:
 
 ---
 
-## Step 3: Configure for Static Public IP (Optional)
+## Configure Wazuh Nodes
+
 If using a static public IP, modify the script by commenting out or deleting the following block to allow public IP usage:
 
 ```bash
@@ -77,7 +82,8 @@ done
 
 ---
 
-## Step 4: Generate Configuration Files
+## Generate SSL Certificates
+
 Run the following command to create the Wazuh cluster key, SSL certificates, and secure passwords:
 
 ```bash
@@ -86,7 +92,7 @@ bash wazuh-install.sh --generate-config-files
 
 ---
 
-## Step 5: Install Wazuh Indexer Nodes
+## Install Wazuh Indexer
 
 ### Install and Configure the Wazuh Indexer:
 Run the script for each node (e.g., `node-1`):
@@ -99,7 +105,7 @@ bash wazuh-install.sh --wazuh-indexer node-1
 
 ---
 
-## Step 6: Initialize the Cluster
+## Initialize the Cluster
 ### Start the Cluster:
 Run the command on any Wazuh indexer node to load the new certificates and initialize the cluster:
 
@@ -111,7 +117,8 @@ bash wazuh-install.sh --start-cluster
 
 ---
 
-## Step 7: Test the Cluster Installation
+## Verify Wazuh Cluster Installation
+
 ### Retrieve the Admin Password:
 Save the admin password to `/root/pass.txt`:
 
@@ -131,18 +138,9 @@ Expected Output:
 {
   "name": "node-1",
   "cluster_name": "wazuh-cluster",
-  "cluster_uuid": "095jEW-oRJSFKLz5wmo5PA",
   "version": {
-    "number": "7.10.2",
-    "build_type": "rpm",
-    "build_hash": "db90a415ff2fd428b4f7b3f800a51dc229287cb4",
-    "build_date": "2023-06-03T06:24:25.112415503Z",
-    "build_snapshot": false,
-    "lucene_version": "9.6.0",
-    "minimum_wire_compatibility_version": "7.10.0",
-    "minimum_index_compatibility_version": "7.0.0"
-  },
-  "tagline": "The OpenSearch Project: https://opensearch.org/"
+    "number": "7.10.2"
+  }
 }
 ```
 
@@ -184,91 +182,6 @@ tar -O -xvf wazuh-install-files.tar wazuh-install-files/wazuh-passwords.txt | te
 
 ---
 
-## Step 11: Access the Web Panel
+## Access the Wazuh Dashboard
+
 Use the IP address provided during the configuration to access the Wazuh web panel.
-
-## Step 12: Update
-```
-sudo apt update -y && sudo apt upgrade -y
-```
-> **Recommended Action**: Disable Wazuh Updates.
-> We recommend disabling the Wazuh package repositories after installation to prevent accidental upgrades that could break the environment.
-> Execute the following command to disable the Wazuh repository:
-
-```
-sed -i "s/^deb /#deb /" /etc/apt/sources.list.d/wazuh.list
-apt update
-```
----
-
-## Creating a Bash Script to Restart All Wazuh Services
-
-To create a script that restarts all necessary Wazuh services, follow these steps:
-
-1. Open a terminal and create the script file:
-```bash
-sudo nano /usr/local/bin/restart-wazuh
-```
-
-2. Add the following script content:
-```bash
-#!/bin/bash
-
-echo "___________________________"
-echo
-echo -e "\e[1;5;7;43m Starting Wazuh Indexer\e[0m"
-echo "___________________________"
-
-sudo systemctl daemon-reload
-sudo systemctl enable wazuh-indexer
-sudo systemctl start wazuh-indexer
-
-echo "___________________________"
-echo
-echo -e "\e[1;5;7;43m Starting Wazuh Manager\e[0m"
-echo "___________________________"
-
-sudo systemctl enable wazuh-manager
-sudo systemctl start wazuh-manager
-
-echo "___________________________"
-echo
-echo -e "\e[1;5;7;43m Starting File beat\e[0m"
-echo "___________________________"
-
-sudo systemctl enable filebeat
-sudo systemctl start filebeat
-
-
-echo "___________________________"
-echo
-echo -e "\e[1;5;7;43m Starting Wazuh Dashboard\e[0m"
-echo "___________________________"
-
-sudo systemctl enable wazuh-dashboard
-sudo systemctl start wazuh-dashboard
-
-echo "___________________________"
-echo
-echo -e "\e[1;5;7;43m Starting SSH Service\e[0m"
-echo "___________________________"
-
-sudo systemctl restart ssh
-
-echo "__________________"
-echo
-echo -e "\e[1;5;7;43m Done\e[0m"
-echo "__________________"
-```
-
-3. Save the file (`CTRL + X`, then `Y`, then `ENTER`).
-
-4. Give execution permission to the script:
-```bash
-sudo chmod +x /usr/local/bin/restart-wazuh
-```
-
-5. Now, you can restart all Wazuh services anytime using:
-```bash
-sudo restart-wazuh
-```

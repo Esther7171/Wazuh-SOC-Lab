@@ -1,56 +1,171 @@
-# How to Install Wazuh with Docker
+# How to Install Wazuh Using Docker
 
-This guide provides a **one-shot installation** of Wazuh using Docker on Debian and Ubuntu systems. Follow the steps below to get Wazuh up and running quickly. This is ideal for security analysts, system administrators, or anyone looking to deploy Wazuh for monitoring and security management.
+This guide explains how to deploy Wazuh using Docker on Ubuntu and Debian systems.
+
+The deployment includes:
+
+- Wazuh Manager
+- Wazuh Indexer
+- Wazuh Dashboard
 
 ---
 
-## Prerequisites
+## Requirements
 
-Before starting, make sure your system meets the following requirements:
+Before starting, make sure your system has:
 
-- Debian-based system (Debian, Ubuntu)
+- Ubuntu or Debian
 - Root or sudo privileges
 - Internet connection
-- Git installed (`sudo apt install git -y`)
-- Docker installed (if not, the script will attempt to install it)
+- Docker installed
+- Docker Compose installed
+- Git installed
 
----
-
-## Step 1: Clone the Installation Script
-
-Open your terminal and run:
+Install Git if needed:
 
 ```bash
-git clone https://gist.github.com/4a0e3ccec609cd8b8f1ab3b4730951cb.git
-cd 4a0e3ccec609cd8b8f1ab3b4730951cb
-````
-
----
-
-## Step 2: Run the Installation Script
-
-Execute the provided script to automatically install Wazuh with Docker:
-
-```bash
-sudo bash wazuh-install.sh
+sudo apt update
+sudo apt install git -y
 ```
 
-> ⚠️ Make sure you are running this on a **Debian or Ubuntu system**. Running it on unsupported OS may cause errors.
+---
+
+## Clone the Wazuh Docker Repository
+
+Clone the official Wazuh Docker repository.
+
+```bash
+git clone https://github.com/wazuh/wazuh-docker.git -b v4.14.5
+```
+
+Move into the single-node deployment directory.
+
+```bash
+cd wazuh-docker/single-node
+```
 
 ---
 
-## Step 3: Verify the Installation
+## Configure Docker Host
 
-Once the script completes:
+Set the required virtual memory value for the Wazuh indexer.
 
-1. Check Docker containers:
+```bash
+sudo sysctl -w vm.max_map_count=262144
+```
+
+To make it persistent after reboot:
+
+```bash
+echo "vm.max_map_count=262144" | sudo tee -a /etc/sysctl.conf
+```
+
+Apply the changes:
+
+```bash
+sudo sysctl -p
+```
+
+---
+
+## Generate SSL Certificates
+
+Generate self-signed certificates for secure communication.
+
+```bash
+docker compose -f generate-indexer-certs.yml run --rm generator
+```
+
+---
+
+## Start Wazuh Docker Deployment
+
+Start all Wazuh containers in the background.
+
+```bash
+docker compose up -d
+```
+
+---
+
+## Verify Running Containers
+
+Check whether all containers are running correctly.
 
 ```bash
 docker ps
 ```
 
-You should see Wazuh containers running.
+You should see containers for:
 
-2. Access the Wazuh dashboard:
-* Use default credentials (if any) provided by the installation script
+- Wazuh Manager
+- Wazuh Indexer
+- Wazuh Dashboard
 
+---
+
+## Access the Wazuh Dashboard
+
+Open your browser and access:
+
+```bash
+https://YOUR_SERVER_IP
+```
+
+Default credentials:
+
+| Username | Password |
+|---|---|
+| admin | SecretPassword |
+
+---
+
+## Exposed Ports
+
+| Port | Service |
+|---|---|
+| 1514 | Wazuh Agent Connection |
+| 1515 | Agent Enrollment |
+| 55000 | Wazuh API |
+| 9200 | Wazuh Indexer |
+| 443 | Wazuh Dashboard |
+
+---
+
+## Troubleshooting
+
+### Wazuh Dashboard Not Loading
+
+Check container status:
+
+```bash
+docker ps
+```
+
+Check logs:
+
+```bash
+docker logs wazuh.dashboard
+```
+
+---
+
+### Indexer Failed to Start
+
+Verify memory configuration:
+
+```bash
+sysctl vm.max_map_count
+```
+
+The value should be:
+
+```bash
+262144
+```
+
+---
+
+## Conclusion
+
+You have successfully deployed Wazuh using Docker.

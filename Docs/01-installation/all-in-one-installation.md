@@ -1,16 +1,36 @@
-# Installing the wazuh All In One Installation.
+# How to Install Wazuh All-in-One
 
-> **Note**: You need root user privileges to run all the commands described below.
+> **Note**
+> Root privileges are required to run all commands below.
 
 ---
 
-### Download this commond utils:
-```
-sudo apt -y install curl wget nano
+## Overview
+
+This guide explains how to deploy a Wazuh All-in-One setup including:
+
+- Wazuh Server
+- Wazuh Indexer
+- Wazuh Dashboard
+
+The installation uses the official Wazuh installation assistant.
+
+---
+
+## Install Required Utilities
+
+Install the required packages before starting the deployment.
+
+```bash
+sudo apt update
+sudo apt install -y curl wget nano
 ```
 
-### Step 1: Create a Directory for Installtion files.
-Organize all installtion files in a dedicated directory:
+---
+
+## Create Installation Directory
+
+Create a dedicated directory to organize the installation files.
 
 ```bash
 mkdir wazuh-install
@@ -19,20 +39,26 @@ cd wazuh-install
 
 ---
 
-### Initail configuration
-Set up your deployment configuration, generate SSL certificates, and create secure random passwords.
+## Download Wazuh Installation Files
 
-### Download the Installtion Assitant and Configuration File:
+Download the Wazuh installation assistant and configuration file.
 
 ```bash
 curl -sO https://packages.wazuh.com/4.14/wazuh-install.sh
 curl -sO https://packages.wazuh.com/4.14/config.yml
 ```
-### Edit `config.yml`:
-Update the node names and IP addresses for your Wazuh server, indexer, and dashboard. Modify the `nodes` section as needed:
-```
+
+---
+
+## Configure Wazuh Deployment
+
+Edit the `config.yml` file and update the node names and IP addresses.
+
+```bash
 nano config.yml
 ```
+
+Example configuration:
 
 ```yaml
 nodes:
@@ -62,8 +88,11 @@ nodes:
 
 ---
 
-## Configure for Static Public IP (Optional)
-If using a static public IP, modify the script by commenting out or deleting the following block to allow public IP usage:
+## Configure Static Public IP (Optional)
+
+By default, the installer blocks public IP addresses.
+
+If your server uses a static public IP, edit the installation script and comment out or remove the following block:
 
 ```bash
 for ip in "${all_ips[@]}"; do
@@ -76,20 +105,41 @@ for ip in "${all_ips[@]}"; do
     fi
 done
 ```
+
 <div align="center">
-  <img src="https://github.com/user-attachments/assets/84040969-831b-414e-8843-5b35dad2308a"></img>
+  <img src="https://github.com/user-attachments/assets/84040969-831b-414e-8843-5b35dad2308a">
 </div>
 
+---
+
+## Start the Installation
+
+Run the following command to install all Wazuh components.
+
+```bash
+sudo bash wazuh-install.sh -a
+```
+
+### Installation Flag
+
+| Flag | Description |
+|---|---|
+| `-a` | Installs all Wazuh components |
 
 ---
 
-### Run and Install
+## Access Wazuh Dashboard
 
-```
-sudo bash wazuh-install.sh -a 
-```
+After the installation is complete, the installer will display:
 
-* `-a`: it stand for all.
+- Dashboard URL
+- Username
+- Password
 
-### After the installtion is complete at the end u will get the id and pass of dashboard.
+Use those credentials to log in to the Wazuh dashboard.
+
 ---
+
+## Conclusion
+
+You have successfully deployed the Wazuh All-in-One environment.
