@@ -1,4 +1,8 @@
-# Wazuh SOC Lab
+<div align="center">
+  <img width="1785" height="714" alt="banner" src="https://github.com/user-attachments/assets/cb769268-59a3-49c6-8379-7b418b62eaf5" />
+</div>
+
+# <div align="center">Wazuh SOC Lab</div>
 
 ![Wazuh](https://img.shields.io/badge/Wazuh-SIEM-blue)
 ![Platform](https://img.shields.io/badge/Platform-Linux-black)
