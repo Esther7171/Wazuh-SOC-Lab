@@ -1,4 +1,3 @@
-````markdown
 # Wazuh SOC Lab
 
 ![Wazuh](https://img.shields.io/badge/Wazuh-SIEM-blue)
@@ -112,4 +111,3 @@ Practical Wazuh engineering, threat detection, integrations, and SOC automation.
 - Threat Intelligence
 - File Integrity Monitoring
 - Security Alerting
-```
