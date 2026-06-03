@@ -2,21 +2,19 @@
 <#
 .SYNOPSIS
     Master Wazuh Agent Deployment Script - Hospital Edition
-    One script does everything. Paste one line per machine.
+    Manager IP and Group are NOT hardcoded — passed at runtime.
 
 .USAGE
-    .\Deploy-Wazuh.ps1 -AgentName "PC-Name-Here"
-    .\Deploy-Wazuh.ps1 -AgentName "PC-Name-Here" -AgentGroup "Continua-Kids"
+    .\Deploy-Wazuh.ps1 -AgentName "PC-Name" -ManagerIP "x.x.x.x" -AgentGroup "GroupName"
 
 .NOTES
-    Manager IP  : 122.160.144.106
-    Version     : 2.0
+    No sensitive defaults in this file. Safe to publish on GitHub.
 #>
 
 param(
     [Parameter(Mandatory=$true)]  [string]$AgentName,
-    [Parameter(Mandatory=$false)] [string]$AgentGroup  = "Continua-Kids",
-    [Parameter(Mandatory=$false)] [string]$ManagerIP   = "122.160.144.106",
+    [Parameter(Mandatory=$true)]  [string]$ManagerIP,
+    [Parameter(Mandatory=$true)]  [string]$AgentGroup,
     [Parameter(Mandatory=$false)] [switch]$SkipSysmon,
     [Parameter(Mandatory=$false)] [switch]$SkipPython,
     [Parameter(Mandatory=$false)] [switch]$SkipYara
@@ -52,7 +50,7 @@ function Download {
     Log "Saved: $OutPath"
 }
 
-# ─── STEP 0 — BYPASS EXECUTION POLICY + DEFENDER ───────────────
+# ─── STEP 0 — BYPASS ────────────────────────────────────────────
 Step "0/9 — Preparing Environment"
 
 Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process -Force
@@ -66,7 +64,6 @@ try {
         Set-MpPreference -DisableRealtimeMonitoring $true
         Add-MpPreference -ExclusionPath $WazuhInstallDir
         Add-MpPreference -ExclusionPath "C:\Sysmon"
-        Add-MpPreference -ExclusionPath "C:\AtomicRedTeam"
         Add-MpPreference -ExclusionProcess "wazuh-agent.exe"
         Add-MpPreference -ExclusionProcess "sysmon64.exe"
         $DefenderWasEnabled = $true
@@ -99,11 +96,8 @@ $OssecConf = "$WazuhInstallDir\ossec.conf"
 if (-not (Test-Path "$OssecConf.bak")) { Copy-Item $OssecConf "$OssecConf.bak" }
 
 $conf = Get-Content $OssecConf -Raw
-
-# Enable syscheck
 $conf = $conf -replace '<disabled>yes</disabled>', '<disabled>no</disabled>'
 
-# Inject directory monitoring
 $dirBlock = @"
 
     <!-- Hospital FIM - User Directories -->
@@ -120,7 +114,6 @@ if ($conf -notmatch 'Users\\\*\\Desktop') {
     Log "FIM directories injected"
 } else { Log "FIM directories already present" "WARN" }
 
-# Append localfiles + woddles + nmap
 $CurrentUser = $env:USERNAME
 $appendBlock = @"
 
@@ -176,7 +169,7 @@ $appendBlock = @"
 
 if ($conf -notmatch "ADDED BY DEPLOY SCRIPT") {
     $conf = $conf -replace '(</ossec_config>)', "$appendBlock`n`$1"
-    Log "Monitoring config appended to ossec.conf"
+    Log "Monitoring config appended"
 } else { Log "Monitoring config already present" "WARN" }
 
 Set-Content -Path $OssecConf -Value $conf -Encoding UTF8
