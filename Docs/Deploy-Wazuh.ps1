@@ -74,15 +74,15 @@ $conf = [System.IO.File]::ReadAllText($OssecConf)
 $conf = $conf -replace '<disabled>yes</disabled>', '<disabled>no</disabled>'
 
 if ($conf -notmatch 'Users\\\*\\Desktop') {
-    $xo = [char]60
-    $xc = [char]62
+    $xo    = [char]60
+    $xc    = [char]62
     $attrs = ' check_all="yes" whodata="yes" report_changes="yes" realtime="yes"'
     $dirsXml = @('Desktop','Downloads','Documents','Music','Pictures','Videos','OneDrive') | ForEach-Object {
         "    " + $xo + "directories" + $attrs + $xc + "C:\Users\*\$_" + $xo + "/directories" + $xc
     }
-    $dirBlock = "`n" + ($dirsXml -join "`n") + "`n"
-    $closeTag = $xo.ToString() + '/syscheck' + $xc.ToString()
-    $conf = $conf -replace '(?s)(' + [regex]::Escape($xo.ToString() + '/syscheck' + $xc.ToString()) + ')', ($dirBlock + $closeTag)
+    $dirBlock   = "`n" + ($dirsXml -join "`n") + "`n"
+    $closeTag   = $xo.ToString() + '/syscheck' + $xc.ToString()
+    $conf = $conf.Replace($closeTag, ($dirBlock + $closeTag))
     Log "FIM directories injected"
 } else { Log "FIM directories already present" "WARN" }
 
@@ -134,7 +134,8 @@ if ($conf -notmatch 'DEPLOY-SCRIPT-BLOCK') {
     }
     $b += "  " + $x + "!-- END-DEPLOY-SCRIPT-BLOCK --" + $X + $nl
 
-    $conf = $conf -replace '(?s)(' + $x + '/ossec_config' + $X + ')', ($b + $x + '/ossec_config' + $X)
+    $closeOssec = $x.ToString() + '/ossec_config' + $X.ToString()
+    $conf = $conf.Replace($closeOssec, ($b + $closeOssec))
     Log "Monitoring config appended"
 } else { Log "Monitoring config already present" "WARN" }
 
