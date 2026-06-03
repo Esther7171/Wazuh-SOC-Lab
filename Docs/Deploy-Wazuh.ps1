@@ -74,80 +74,67 @@ $conf = [System.IO.File]::ReadAllText($OssecConf)
 $conf = $conf -replace '<disabled>yes</disabled>', '<disabled>no</disabled>'
 
 if ($conf -notmatch 'Users\\\*\\Desktop') {
-    $dirs = @(
-        '    <directories check_all="yes" whodata="yes" report_changes="yes" realtime="yes">C:\Users\*\Desktop</directories>',
-        '    <directories check_all="yes" whodata="yes" report_changes="yes" realtime="yes">C:\Users\*\Downloads</directories>',
-        '    <directories check_all="yes" whodata="yes" report_changes="yes" realtime="yes">C:\Users\*\Documents</directories>',
-        '    <directories check_all="yes" whodata="yes" report_changes="yes" realtime="yes">C:\Users\*\Music</directories>',
-        '    <directories check_all="yes" whodata="yes" report_changes="yes" realtime="yes">C:\Users\*\Pictures</directories>',
-        '    <directories check_all="yes" whodata="yes" report_changes="yes" realtime="yes">C:\Users\*\Videos</directories>',
-        '    <directories check_all="yes" whodata="yes" report_changes="yes" realtime="yes">C:\Users\*\OneDrive</directories>'
-    )
-    $dirBlock = "`n" + ($dirs -join "`n") + "`n"
-    $conf = $conf -replace '(?s)(</syscheck>)', ($dirBlock + '</syscheck>')
+    $xo = [char]60
+    $xc = [char]62
+    $attrs = ' check_all="yes" whodata="yes" report_changes="yes" realtime="yes"'
+    $dirsXml = @('Desktop','Downloads','Documents','Music','Pictures','Videos','OneDrive') | ForEach-Object {
+        "    " + $xo + "directories" + $attrs + $xc + "C:\Users\*\$_" + $xo + "/directories" + $xc
+    }
+    $dirBlock = "`n" + ($dirsXml -join "`n") + "`n"
+    $closeTag = $xo.ToString() + '/syscheck' + $xc.ToString()
+    $conf = $conf -replace '(?s)(' + [regex]::Escape($xo.ToString() + '/syscheck' + $xc.ToString()) + ')', ($dirBlock + $closeTag)
     Log "FIM directories injected"
 } else { Log "FIM directories already present" "WARN" }
 
 if ($conf -notmatch 'DEPLOY-SCRIPT-BLOCK') {
     $CurrentUser = $env:USERNAME
-    $cpu  = '    <command>Powershell -c "@{ winCounter = (Get-Counter ''\Processor(_Total)\% Processor Time'').CounterSamples[0] } | ConvertTo-Json -compress"</command>'
-    $mem  = '    <command>Powershell -c "@{ winCounter = (Get-Counter ''\Memory\Available MBytes'').CounterSamples[0] } | ConvertTo-Json -compress"</command>'
-    $nin  = '    <command>Powershell -c "@{ winCounter = (Get-Counter ''\Network Interface(*)\Bytes Received/sec'').CounterSamples[0] } | ConvertTo-Json -compress"</command>'
-    $nout = '    <command>Powershell -c "@{ winCounter = (Get-Counter ''\Network Interface(*)\Bytes Sent/sec'').CounterSamples[0] } | ConvertTo-Json -compress"</command>'
-    $disk = '    <command>Powershell -c "@{ winCounter = (Get-Counter ''\LogicalDisk(*)\Free Megabytes'').CounterSamples[0] } | ConvertTo-Json -compress"</command>'
+    $x = [char]60  # '<'
+    $X = [char]62  # '>'
 
-    $block = @"
+    # Build each XML line as plain string — no here-string, no bare < operators
+    $nl = "`r`n"
+    $b  = $nl
+    $b += "  " + $x + "!-- DEPLOY-SCRIPT-BLOCK --" + $X + $nl
+    $b += "  " + $x + "localfile" + $X + $nl
+    $b += "    " + $x + "location" + $X + "Microsoft-Windows-Windows Defender/Operational" + $x + "/location" + $X + $nl
+    $b += "    " + $x + "log_format" + $X + "eventchannel" + $x + "/log_format" + $X + $nl
+    $b += "  " + $x + "/localfile" + $X + $nl
+    $b += "  " + $x + "localfile" + $X + $nl
+    $b += "    " + $x + "location" + $X + "Microsoft-Windows-PrintService/Operational" + $x + "/location" + $X + $nl
+    $b += "    " + $x + "log_format" + $X + "eventchannel" + $x + "/log_format" + $X + $nl
+    $b += "  " + $x + "/localfile" + $X + $nl
+    $b += "  " + $x + "localfile" + $X + $nl
+    $b += "    " + $x + "location" + $X + "Microsoft-Windows-Sysmon/Operational" + $x + "/location" + $X + $nl
+    $b += "    " + $x + "log_format" + $X + "eventchannel" + $x + "/log_format" + $X + $nl
+    $b += "  " + $x + "/localfile" + $X + $nl
+    $b += "  " + $x + "localfile" + $X + $nl
+    $b += "    " + $x + "location" + $X + "Microsoft-Windows-PowerShell/Operational" + $x + "/location" + $X + $nl
+    $b += "    " + $x + "log_format" + $X + "eventchannel" + $x + "/log_format" + $X + $nl
+    $b += "  " + $x + "/localfile" + $X + $nl
+    $b += "  " + $x + "localfile" + $X + $nl
+    $b += "    " + $x + "log_format" + $X + "full_command" + $x + "/log_format" + $X + $nl
+    $b += "    " + $x + "command" + $X + "C:\Users\$CurrentUser\Documents\nmapscan.exe" + $x + "/command" + $X + $nl
+    $b += "    " + $x + "frequency" + $X + "604800" + $x + "/frequency" + $X + $nl
+    $b += "  " + $x + "/localfile" + $X + $nl
 
-  <!-- DEPLOY-SCRIPT-BLOCK -->
-  <localfile>
-    <location>Microsoft-Windows-Windows Defender/Operational</location>
-    <log_format>eventchannel</log_format>
-  </localfile>
-  <localfile>
-    <location>Microsoft-Windows-PrintService/Operational</location>
-    <log_format>eventchannel</log_format>
-  </localfile>
-  <localfile>
-    <location>Microsoft-Windows-Sysmon/Operational</location>
-    <log_format>eventchannel</log_format>
-  </localfile>
-  <localfile>
-    <location>Microsoft-Windows-PowerShell/Operational</location>
-    <log_format>eventchannel</log_format>
-  </localfile>
-  <localfile>
-    <log_format>full_command</log_format>
-    <command>C:\Users\$CurrentUser\Documents\nmapscan.exe</command>
-    <frequency>604800</frequency>
-  </localfile>
-  <wodle name="command">
-    <disabled>no</disabled><tag>CPUUsage</tag>
-$cpu
-    <interval>1m</interval><ignore_output>no</ignore_output><run_on_start>yes</run_on_start><timeout>0</timeout>
-  </wodle>
-  <wodle name="command">
-    <disabled>no</disabled><tag>MEMUsage</tag>
-$mem
-    <interval>1m</interval><ignore_output>no</ignore_output><run_on_start>yes</run_on_start><timeout>0</timeout>
-  </wodle>
-  <wodle name="command">
-    <disabled>no</disabled><tag>NetworkTrafficIn</tag>
-$nin
-    <interval>1m</interval><ignore_output>no</ignore_output><run_on_start>yes</run_on_start><timeout>0</timeout>
-  </wodle>
-  <wodle name="command">
-    <disabled>no</disabled><tag>NetworkTrafficOut</tag>
-$nout
-    <interval>1m</interval><ignore_output>no</ignore_output><run_on_start>yes</run_on_start><timeout>0</timeout>
-  </wodle>
-  <wodle name="command">
-    <disabled>no</disabled><tag>DiskFree</tag>
-$disk
-    <interval>1m</interval><ignore_output>no</ignore_output><run_on_start>yes</run_on_start><timeout>0</timeout>
-  </wodle>
-  <!-- END-DEPLOY-SCRIPT-BLOCK -->
-"@
-    $conf = $conf -replace '(?s)(</ossec_config>)', ($block + "`n</ossec_config>")
+    foreach ($tag in @(
+        @{ t='CPUUsage';         q='\Processor(_Total)\% Processor Time' },
+        @{ t='MEMUsage';         q='\Memory\Available MBytes' },
+        @{ t='NetworkTrafficIn'; q='\Network Interface(*)\Bytes Received/sec' },
+        @{ t='NetworkTrafficOut';q='\Network Interface(*)\Bytes Sent/sec' },
+        @{ t='DiskFree';         q='\LogicalDisk(*)\Free Megabytes' }
+    )) {
+        $cmd = 'Powershell -c "@{ winCounter = (Get-Counter ''' + $tag.q + ''').CounterSamples[0] } | ConvertTo-Json -compress"'
+        $b += "  " + $x + 'wodle name="command"' + $X + $nl
+        $b += "    " + $x + "disabled" + $X + "no" + $x + "/disabled" + $X + $x + "tag" + $X + $tag.t + $x + "/tag" + $X + $nl
+        $b += "    " + $x + "command" + $X + $cmd + $x + "/command" + $X + $nl
+        $b += "    " + $x + "interval" + $X + "1m" + $x + "/interval" + $X + $x + "ignore_output" + $X + "no" + $x + "/ignore_output" + $X + $nl
+        $b += "    " + $x + "run_on_start" + $X + "yes" + $x + "/run_on_start" + $X + $x + "timeout" + $X + "0" + $x + "/timeout" + $X + $nl
+        $b += "  " + $x + "/wodle" + $X + $nl
+    }
+    $b += "  " + $x + "!-- END-DEPLOY-SCRIPT-BLOCK --" + $X + $nl
+
+    $conf = $conf -replace '(?s)(' + $x + '/ossec_config' + $X + ')', ($b + $x + '/ossec_config' + $X)
     Log "Monitoring config appended"
 } else { Log "Monitoring config already present" "WARN" }
 
