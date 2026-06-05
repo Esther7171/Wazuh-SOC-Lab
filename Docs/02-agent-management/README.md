@@ -1,5 +1,8 @@
 # Wazuh Agent Management
 
+<img width="801" height="798" alt="image" src="https://github.com/user-attachments/assets/60525fc2-8dc1-4db5-8075-26ff280b8344" />
+
+
 This section covers Wazuh agent deployment, enrollment, upgrades, grouping, labels, and centralized configuration management.
 
 ---
