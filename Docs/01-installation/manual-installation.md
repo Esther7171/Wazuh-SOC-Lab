@@ -64,6 +64,9 @@ nodes:
 ## Configure Wazuh Nodes
 
 If using a static public IP, modify the script by commenting out or deleting the following block to allow public IP usage:
+```bash
+ nano wazuh-install.sh
+```
 
 ```bash
 for ip in "${all_ips[@]}"; do
