@@ -25,7 +25,7 @@ Once the password is changed, restart the Wazuh services to apply the update:
 ```bash
 sudo systemctl restart filebeat
 sudo systemctl restart wazuh-dashboard
-sudo systemctl restart Wazuh-manager
+sudo systemctl restart wazuh-manager
 ```
 
 These commands ensure that all components (Wazuh manager, API, and indexer) reload with the new credentials.
